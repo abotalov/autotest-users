@@ -11,12 +11,11 @@ module Autotest
   end
 
   module Users
-
     def create_user(name)
       require "randexp"
 
-      $users ||= Hash.new
-      $users[name] ||= Hash.new
+      $users ||= {}
+      $users[name] ||= ActiveSupport::HashWithIndifferentAccess.new
 
       first_name = /[:first_name:]/.gen
       last_name = /[:last_name:]/.gen
@@ -28,60 +27,46 @@ module Autotest
       $users[name][:full_name] = "#{first_name} #{last_name}"
       email = Autotest.email.split('@')
       $users[name][:email] = "%s+%s%s@%s" % [email[0], first_name.downcase, last_name.downcase, email[1]]
-      $users[name][:password] = Autotest.password      
+      $users[name][:password] = Autotest.password
 
       $users[name]
     end
 
     def get_user(name)
-      if ($users.nil?) or ($users[name].nil?) 
-        raise "<#Autotest::Users> User #{name} doesn't exist." 
+      if $users.nil?
+        raise "<#Autotest::Users> No one user is created"
       end
-
-      $users[name]
-    end
-
-    def user_data(name, param)
-      value = if param.kind_of? Hash
-                set_user_data(name, param)
-              else
-                get_user_data(name, param)                
-              end
-      value
+      $users.fetch(name)
     end
 
     def set_user_data(name, options = {})
+      user = get_user(name)
       options.each do |key, value|
-        key = key.to_sym
-        $users[name][key] = value
-        if key == :first_name or key == :last_name
-          $users[name][:full_name] = "#{$users[name][:first_name]} #{$users[name][:last_name]}"
+        user[key] = value
+        if %w(first_name last_name).include?(key)
+          user[:full_name] = "#{user[:first_name]} #{user[:last_name]}"
         end
       end
       options.values.first
     end
 
-    def get_user_data(name, type)
+    def get_user_data(name, key)
       user = get_user(name)
-      type = type.to_sym
-      if user[type].nil?
-        raise "<#Autotest::Users> The '#{type}' doesn't exist for '#{name}' user"
-      end
-      user[type]
+      user.fetch(key)
     end
 
-    def current_user(*short_name)
-      unless short_name.empty?
+    def current_user(short_name = nil)
+      if short_name
         if $users.nil?
           raise "<#Autotest::Users> You should use create_user method, before 'current_user=' method."
-        end      
-        $current_user = $users[short_name.first]
-      end    
+        end
+        $current_user = $users[short_name]
+      end
       $current_user
     end
 
     def user_created?(name)
-      (all_users and $users[name]).nil? ? false : true
+      ($users && $users[name]).nil? ? false : true
     end
     
     def all_users
