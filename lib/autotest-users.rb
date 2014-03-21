@@ -41,7 +41,7 @@ module Autotest
 
     def set_user_data(name, options = {})
       user = get_user(name)
-      options.each do |key, value|
+      options.with_indifferent_access.each do |key, value|
         user[key] = value
         if %w(first_name last_name).include?(key)
           user[:full_name] = "#{user[:first_name]} #{user[:last_name]}"
