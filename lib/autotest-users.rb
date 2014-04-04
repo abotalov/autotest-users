@@ -15,7 +15,7 @@ module Autotest
       require "randexp"
 
       $users ||= {}
-      $users[name] ||= ActiveSupport::HashWithIndifferentAccess.new
+      $users[name] = ActiveSupport::HashWithIndifferentAccess.new
 
       first_name = /[:first_name:]/.gen
       last_name = /[:last_name:]/.gen
