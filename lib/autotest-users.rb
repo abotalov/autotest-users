@@ -15,21 +15,20 @@ module Autotest
       require "randexp"
 
       $users ||= {}
-      $users[name] ||= ActiveSupport::HashWithIndifferentAccess.new
+      $users[name] = ActiveSupport::HashWithIndifferentAccess.new
 
       first_name = /[:first_name:]/.gen
       last_name = /[:last_name:]/.gen
       first_name.gsub!("'",'')
       last_name.gsub!("'",'')
 
-      $users[name][:first_name] = first_name
-      $users[name][:last_name] = last_name
-      $users[name][:full_name] = "#{first_name} #{last_name}"
-      email = Autotest.email.split('@')
-      $users[name][:email] = "%s+%s%s@%s" % [email[0], first_name.downcase, last_name.downcase, email[1]]
-      $users[name][:password] = Autotest.password
-
-      $users[name]
+      $users[name].tap do |user|
+        user[:first_name] = first_name
+        user[:last_name] = last_name
+        user[:full_name] = "#{first_name} #{last_name}"
+        user[:email] = generate_email_for(user)
+        user[:password] = Autotest.password
+      end
     end
 
     def get_user(name)
@@ -73,6 +72,10 @@ module Autotest
       $users
     end
 
+    def generate_email_for(user)
+      local_part, domain_part = Autotest.email.split('@')
+      sprintf('%s+%s%s@%s', local_part, user[:first_name].downcase, user[:last_name].downcase, domain_part)
+    end
   end
 end
 
