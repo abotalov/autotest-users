@@ -26,7 +26,7 @@ module Autotest
         user[:first_name] = first_name
         user[:last_name] = last_name
         user[:full_name] = "#{first_name} #{last_name}"
-        user[:email] = generate_email_for(user)
+        generate_email_for(user)
         user[:password] = Autotest.password
       end
     end
@@ -74,7 +74,7 @@ module Autotest
 
     def generate_email_for(user)
       local_part, domain_part = Autotest.email.split('@')
-      sprintf('%s+%s%s@%s', local_part, user[:first_name].downcase, user[:last_name].downcase, domain_part)
+      user[:email] = sprintf('%s+%s%s@%s', local_part, user[:first_name].downcase, user[:last_name].downcase, domain_part)
     end
   end
 end
