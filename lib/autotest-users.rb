@@ -59,7 +59,7 @@ module Autotest
         if $users.nil?
           raise "<#Autotest::Users> You should use create_user method, before 'current_user=' method."
         end
-        $current_user = $users[short_name]
+        $current_user = $users.fetch(short_name)
       end
       $current_user
     end
