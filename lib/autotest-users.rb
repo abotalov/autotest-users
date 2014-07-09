@@ -49,9 +49,13 @@ module Autotest
       options.values.first
     end
 
-    def get_user_data(name, key)
+    def get_user_data(name, *keys)
       user = get_user(name)
-      user.fetch(key)
+      if keys.size == 1
+        user.fetch(key)
+      else
+        keys.map { user.fetch(key) }
+      end
     end
 
     def current_user(short_name = nil)
