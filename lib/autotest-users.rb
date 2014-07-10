@@ -18,6 +18,7 @@ module Autotest
     def create_user(name, options = {})
       $users ||= {}
       $users[name] = ActiveSupport::HashWithIndifferentAccess.new
+      self.class.on_user_create(user)
       set_user_data(name, options = {})
     end
 
@@ -33,6 +34,7 @@ module Autotest
       options.with_indifferent_access.each do |key, value|
         user[key] = value
       end
+      self.class.on_user_change(user)
       options.values.first
     end
 
