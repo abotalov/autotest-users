@@ -23,7 +23,6 @@ module Autotest
         user[:email] = sprintf('%s+%s%s@%s', local_part, user[:first_name].downcase, user[:last_name].downcase, domain_part)
       end
     end
-  end
 
     def create_user(name, options = {})
       $users ||= {}
