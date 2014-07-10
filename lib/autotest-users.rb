@@ -1,24 +1,34 @@
 require "autotest-users/version"
 
 module Autotest
+  module Users
+    class << self
+      attr_accessor :email
+      attr_reader :post_create_block, :post_change_block
 
-  class << self
-    attr_accessor :email
+      def configure
+        yield self
+      end
 
-    def configure
-      yield self
+      def on_user_create(&block)
+        @post_create_block = block
+      end
+
+      def on_user_change(&block)
+        @post_change_block = block
+      end
+
+      def generate_email_for(user)
+        local_part, domain_part = email.split('@')
+        user[:email] = sprintf('%s+%s%s@%s', local_part, user[:first_name].downcase, user[:last_name].downcase, domain_part)
+      end
     end
-
-    def on_user_create(user); end
-
-    def on_user_change(user); end
   end
 
-  module Users
     def create_user(name, options = {})
       $users ||= {}
       $users[name] = ActiveSupport::HashWithIndifferentAccess.new
-      self.class.on_user_create(user)
+      Autotest::Users.post_create_block.call(user)
       set_user_data(name, options = {})
     end
 
@@ -34,7 +44,7 @@ module Autotest
       options.with_indifferent_access.each do |key, value|
         user[key] = value
       end
-      self.class.on_user_change(user)
+      Autotest::Users.post_change_block.call(user)
       options.values.first
     end
 
@@ -64,23 +74,18 @@ module Autotest
     def all_users
       $users
     end
-
-    def generate_email_for(user)
-      local_part, domain_part = Autotest.email.split('@')
-      user[:email] = sprintf('%s+%s%s@%s', local_part, user[:first_name].downcase, user[:last_name].downcase, domain_part)
-    end
   end
 end
 
-Autotest.email = 'test@example.com'
+Autotest::Users.email = 'test@example.com'
 
-Autotest.on_user_create do |user|
+Autotest::Users.on_user_create do |user|
   user[:first_name] = 'First'
   user[:last_name] = 'Last'
-  user[:email] = generate_email_for(user)
+  user[:email] = Autotest::Users.generate_email_for(user)
   user[:password] = 'password'
 end
 
-Autotest.on_user_change do |user|
+Autotest::Users.on_user_change do |user|
   user[:full_name] = "#{user[:first_name]} #{user[:last_name]}"
 end
