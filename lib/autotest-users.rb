@@ -27,7 +27,7 @@ module Autotest
     def create_user(name, options = {})
       $users ||= {}
       $users[name] = ActiveSupport::HashWithIndifferentAccess.new
-      Autotest::Users.post_create_block.call(user)
+      Autotest::Users.post_create_block.call($users[name])
       set_user_data(name, options = {})
     end
 
